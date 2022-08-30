@@ -78,7 +78,12 @@ app.get("/", function (req, res) {
 });
 
 app.get("/movies", function (req, res) {
-  res.send(movies);
+  console.log(req.query);
+  const { rating } = req.query;
+  console.log(rating);
+  rating
+    ? res.send(movies.filter((movie) => movie.rating == rating))
+    : res.send(movies);
 });
 
 app.get("/movies/:id", function (req, res) {
