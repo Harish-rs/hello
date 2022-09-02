@@ -1,6 +1,26 @@
 // const express = require("express");
 import express from "express";
+import { MongoClient } from "mongodb";
+import dotenv from "dotenv";
 const app = express();
+
+dotenv.config();
+// console.log(process.env);
+// const mongo_url = "mongodb://localhost";
+const mongo_url = process.env.mongo_url;
+
+async function createConnection() {
+  const client = new MongoClient(mongo_url);
+  await client.connect();
+  console.log("Connected to Mongo");
+  return client;
+}
+
+const client = await createConnection();
+//express.json()- middleware inbuilt
+//app.use- applies middlewear to all the request to convert to js objects
+app.use(express.json());
+
 const movies = [
   {
     id: "100",
@@ -78,21 +98,36 @@ app.get("/", function (req, res) {
 });
 
 app.get("/movies", function (req, res) {
-  console.log(req.query);
   const { rating } = req.query;
   console.log(rating);
   rating
-    ? res.send(movies.filter((movie) => movie.rating == rating))
+    ? res.send(movies.filter((mv) => mv.rating == rating))
     : res.send(movies);
 });
 
-app.get("/movies/:id", function (req, res) {
-  //   console.log(req.params.id);
+app.get("/movies/:id", async function (req, res) {
   const { id } = req.params;
-  //   console.log(id);
-  const movie = movies.find((movie) => movie.id === id);
-
+  console.log(id);
+  //db.practice.findone({id: "104"});
+  const movie = await client
+    .db("practice")
+    .collection("practice")
+    .findOne({ id: id });
+  console.log(movie);
   !movie ? res.status(404).send({ msg: "movie not found" }) : res.send(movie);
+});
+
+app.post("/movies", async function (req, res) {
+  const new_movie = req.body;
+  console.log(new_movie);
+  //db.practice.practice.insertMany(new_movie);
+
+  const result = await client
+    .db("practice")
+    .collection("practice")
+    .insertMany(new_movie);
+
+  res.send(result);
 });
 
 app.listen(PORT, () => console.log(`listening on port ${PORT}`));
