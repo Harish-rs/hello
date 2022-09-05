@@ -97,12 +97,31 @@ app.get("/", function (req, res) {
   res.send("first node.....👍");
 });
 
-app.get("/movies", function (req, res) {
-  const { rating } = req.query;
-  console.log(rating);
-  rating
-    ? res.send(movies.filter((mv) => mv.rating == rating))
-    : res.send(movies);
+app.get("/movies", async function (req, res) {
+  // const { rating } = req.query;
+  const filter = req.query;
+  if (filter.rating) {
+    filter.rating = +filter.rating;
+  }
+  console.log(filter);
+
+  //db.practice.practice.find()
+  // find return cursor with pagination 2o document at a time
+  // we need array of movies so toArray() converts cursor to Array
+  const all_movies = await client
+    .db("practice")
+    .collection("practice")
+    .find(req.query)
+    .toArray();
+  console.log(all_movies.length);
+
+  all_movies.length <= 0
+    ? res.status(404).send({ msg: "movies not found" })
+    : res.send(all_movies);
+
+  // rating
+  //   ? res.send(movies.filter((mv) => mv.rating == rating))
+  //   : res.send(movies);
 });
 
 app.get("/movies/:id", async function (req, res) {
@@ -127,6 +146,33 @@ app.post("/movies", async function (req, res) {
     .collection("practice")
     .insertMany(new_movie);
 
+  res.send(result);
+});
+
+app.delete("/movies/:id", async function (req, res) {
+  const { id } = req.params;
+  console.log(id);
+  //db.practice.practice.deleteone({id: "104"});
+  const result = await client
+    .db("practice")
+    .collection("practice")
+    .deleteOne({ id: id });
+  console.log(result);
+  !result ? res.status(404).send({ msg: "movie not found" }) : res.send(result);
+});
+
+app.put("/movies/:id", async function (req, res) {
+  const { id } = req.params;
+  const update_data = req.body;
+  console.log(update_data);
+  console.log(id);
+  //db.practice.update({id: "104"},{$set: update_data});
+  const result = await client
+    .db("practice")
+    .collection("practice")
+    .updateOne({ id: id }, { $set: update_data });
+
+  console.log(result);
   res.send(result);
 });
 
