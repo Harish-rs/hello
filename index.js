@@ -91,7 +91,7 @@ const movies = [
     trailer: "https://www.youtube.com/embed/NgsQ8mVkN8w",
   },
 ];
-const PORT = 4000;
+const PORT = process.env.PORT;
 
 app.get("/", function (req, res) {
   res.send("first node.....👍");
